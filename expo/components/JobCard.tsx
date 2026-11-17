@@ -9,17 +9,12 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Bookmark, MapPin, Clock } from "@/components/icons";
+import { Bookmark, MapPin, Clock, Briefcase } from "@/components/icons";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { Job } from "@/types";
 import { useJobs } from "@/providers/JobProvider";
-import {
-  UNKNOWN,
-  WORK_TYPE_LABELS,
-  formatJobSalary,
-  formatJobAge,
-} from "@/utils/jobs";
+import { UNKNOWN, getJobDisplay } from "@/utils/jobs";
 
 interface JobCardProps {
   job: Job;
@@ -32,7 +27,9 @@ function JobCardInner({ job }: JobCardProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const bookmarkScale = useRef(new Animated.Value(1)).current;
 
+  const display = getJobDisplay(job);
   const sourceColor = Colors.sources[job.source] ?? Colors.dark.accent;
+  const hasTags = !!display.salary || !!display.workType || job.isNew;
 
   const handlePress = useCallback(() => {
     Animated.sequence([
@@ -76,7 +73,7 @@ function JobCardInner({ job }: JobCardProps) {
           <View style={styles.companyRow}>
             {job.companyLogo === UNKNOWN ? (
               <View style={[styles.companyLogo, styles.logoFallback]}>
-                <Text style={styles.logoFallbackText}>{UNKNOWN}</Text>
+                <Briefcase size={22} color={Colors.dark.textMuted} />
               </View>
             ) : (
               <Image
@@ -87,12 +84,12 @@ function JobCardInner({ job }: JobCardProps) {
             )}
             <View style={styles.companyInfo}>
               <Text style={styles.companyName} numberOfLines={1}>
-                {job.company}
+                {display.company}
               </Text>
               <View style={styles.locationRow}>
                 <MapPin size={12} color={Colors.dark.textMuted} />
                 <Text style={styles.locationText} numberOfLines={1}>
-                  {job.location}
+                  {display.location}
                 </Text>
               </View>
             </View>
@@ -114,57 +111,66 @@ function JobCardInner({ job }: JobCardProps) {
         </View>
 
         <Text style={styles.jobTitle} numberOfLines={2}>
-          {job.title}
+          {display.title}
         </Text>
 
-        <View style={styles.tagsRow}>
-          <View
-            style={[styles.tag, { backgroundColor: Colors.dark.tintLight }]}
-          >
-            <Text style={[styles.tagText, { color: Colors.dark.tint }]}>
-              {formatJobSalary(job)}
-            </Text>
+        {hasTags && (
+          <View style={styles.tagsRow}>
+            {display.salary && (
+              <View
+                style={[styles.tag, { backgroundColor: Colors.dark.tintLight }]}
+              >
+                <Text style={[styles.tagText, { color: Colors.dark.tint }]}>
+                  {display.salary}
+                </Text>
+              </View>
+            )}
+            {display.workType && (
+              <View
+                style={[
+                  styles.tag,
+                  { backgroundColor: Colors.dark.accentLight },
+                ]}
+              >
+                <Text style={[styles.tagText, { color: Colors.dark.accent }]}>
+                  {display.workType}
+                </Text>
+              </View>
+            )}
+            {job.isNew && (
+              <View
+                style={[
+                  styles.tag,
+                  { backgroundColor: Colors.dark.warningLight },
+                ]}
+              >
+                <Text style={[styles.tagText, { color: Colors.dark.warning }]}>
+                  New
+                </Text>
+              </View>
+            )}
           </View>
-          <View
-            style={[styles.tag, { backgroundColor: Colors.dark.accentLight }]}
-          >
-            <Text style={[styles.tagText, { color: Colors.dark.accent }]}>
-              {WORK_TYPE_LABELS[job.workType]}
-            </Text>
-          </View>
-          {job.isNew && (
+        )}
+
+        <View style={styles.cardFooter}>
+          {display.source && (
             <View
               style={[
-                styles.tag,
-                { backgroundColor: Colors.dark.warningLight },
+                styles.sourceBadge,
+                { backgroundColor: sourceColor + "22" },
               ]}
             >
-              <Text style={[styles.tagText, { color: Colors.dark.warning }]}>
-                New
+              <View
+                style={[styles.sourceDot, { backgroundColor: sourceColor }]}
+              />
+              <Text style={[styles.sourceText, { color: sourceColor }]}>
+                {display.source}
               </Text>
             </View>
           )}
-        </View>
-
-        <View style={styles.cardFooter}>
-          <View
-            style={[
-              styles.sourceBadge,
-              { backgroundColor: sourceColor + "22" },
-            ]}
-          >
-            <View
-              style={[styles.sourceDot, { backgroundColor: sourceColor }]}
-            />
-            <Text style={[styles.sourceText, { color: sourceColor }]}>
-              {job.source}
-            </Text>
-          </View>
           <View style={styles.timeRow}>
             <Clock size={12} color={Colors.dark.textMuted} />
-            <Text style={styles.timeText}>
-              {formatJobAge(job.postedAt, true)}
-            </Text>
+            <Text style={styles.timeText}>{display.cardDate}</Text>
           </View>
         </View>
       </Pressable>
@@ -209,10 +215,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logoFallbackText: {
-    fontSize: 9,
-    color: Colors.dark.textMuted,
-  },
+
   companyInfo: {
     marginLeft: 10,
     flex: 1,
@@ -229,6 +232,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   locationText: {
+    flexShrink: 1,
     fontSize: 12,
     color: Colors.dark.textMuted,
   },
@@ -280,6 +284,7 @@ const styles = StyleSheet.create({
     fontWeight: "600" as const,
   },
   timeRow: {
+    marginLeft: "auto",
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
