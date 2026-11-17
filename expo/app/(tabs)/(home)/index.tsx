@@ -7,6 +7,8 @@ import {
   TextInput,
   Pressable,
   RefreshControl,
+  ActivityIndicator,
+  Switch,
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -23,27 +25,52 @@ import { getWelcomeMessage } from "@/utils/profile";
 export default function JobsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { jobs, filters, setFilters, activeFilterCount, profile } = useJobs();
-  const [refreshing, setRefreshing] = useState(false);
+  const {
+    jobs,
+    filters,
+    setFilters,
+    activeFilterCount,
+    profile,
+    searchJobs,
+    hasSearched,
+    isSearching,
+    isFetchingNextPage,
+    searchError,
+    hasNextPage,
+    loadMore,
+    refreshJobs,
+    isDemo,
+  } = useJobs();
+  const [query, setQuery] = useState("");
+  const [location, setLocation] = useState("");
+  const [remoteOnly, setRemoteOnly] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  const busy = isSearching || isFetchingNextPage;
+  const canSubmit = query.trim().length > 0 && !busy;
+  const showResults = isDemo || hasSearched;
 
-  const handleSearchChange = useCallback(
-    (text: string) => {
-      setFilters({ ...filters, search: text });
-    },
-    [filters, setFilters],
-  );
+  const submitSearch = useCallback(() => {
+    if (!query.trim() || busy) return;
+    searchInputRef.current?.blur();
+    searchJobs(query.trim(), location.trim(), remoteOnly);
+  }, [query, location, remoteOnly, busy, searchJobs]);
 
   const clearSearch = useCallback(() => {
-    setFilters({ ...filters, search: "" });
-    searchInputRef.current?.blur();
-  }, [filters, setFilters]);
+    setQuery("");
+    if (isDemo) setFilters({ ...filters, search: "" });
+  }, [isDemo, filters, setFilters]);
+
+  const onRefresh = useCallback(() => {
+    if ((!showResults && !searchError) || busy) return;
+    refreshJobs();
+  }, [showResults, searchError, busy, refreshJobs]);
+
+  const onLoadMore = useCallback(() => {
+    if (isDemo || !hasNextPage || busy) return;
+    loadMore();
+  }, [isDemo, hasNextPage, busy, loadMore]);
 
   const openFilters = useCallback(() => {
     if (Platform.OS !== "web") {
@@ -61,6 +88,9 @@ export default function JobsScreen() {
   const ListHeader = (
     <View style={styles.headerContent}>
       <Text style={styles.title}>{getWelcomeMessage(profile.firstName)}</Text>
+      <Text style={styles.subtitle}>
+        {isDemo ? "Demo · Sample jobs, no live searches" : "US jobs"}
+      </Text>
       <View style={styles.searchRow}>
         <View
           style={[styles.searchBar, searchFocused && styles.searchBarFocused]}
@@ -69,17 +99,24 @@ export default function JobsScreen() {
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder="Search jobs, companies, skills..."
+            placeholder="Job title, company, skills"
             placeholderTextColor={Colors.dark.textMuted}
-            value={filters.search}
-            onChangeText={handleSearchChange}
+            value={query}
+            onChangeText={setQuery}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
+            onSubmitEditing={submitSearch}
             returnKeyType="search"
+            accessibilityLabel="Job keywords"
             testID="search-input"
           />
-          {filters.search.length > 0 && (
-            <Pressable onPress={clearSearch} hitSlop={8}>
+          {query.length > 0 && (
+            <Pressable
+              onPress={clearSearch}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Clear keyword draft"
+            >
               <X size={16} color={Colors.dark.textMuted} />
             </Pressable>
           )}
@@ -90,6 +127,8 @@ export default function JobsScreen() {
             styles.filterBtn,
             activeFilterCount > 0 && styles.filterBtnActive,
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={`Filters, ${activeFilterCount} active`}
           testID="filter-button"
         >
           <SlidersHorizontal
@@ -107,9 +146,49 @@ export default function JobsScreen() {
           )}
         </Pressable>
       </View>
+      <TextInput
+        style={styles.locationInput}
+        placeholder="City, state (optional)"
+        placeholderTextColor={Colors.dark.textMuted}
+        value={location}
+        onChangeText={setLocation}
+        onSubmitEditing={submitSearch}
+        returnKeyType="search"
+        accessibilityLabel="US city or state, optional"
+
+        testID="location-input"
+      />
+      <View style={styles.remoteRow}>
+        <Text style={styles.remoteText}>Remote only</Text>
+        <Switch
+          value={remoteOnly}
+          onValueChange={setRemoteOnly}
+          trackColor={{ true: Colors.dark.tint, false: Colors.dark.border }}
+          accessibilityLabel="Remote jobs only"
+          accessibilityRole="switch"
+          testID="remote-toggle"
+        />
+      </View>
+      {isDemo && (
+        <Text style={styles.note}>
+          Demo searches filter sample jobs by keyword, city/state, and remote
+          preference.
+        </Text>
+      )}
+      <Pressable
+        onPress={submitSearch}
+        disabled={!canSubmit}
+        style={[styles.actionButton, !canSubmit && styles.disabled]}
+        accessibilityRole="button"
+        accessibilityLabel={isDemo ? "Search demo jobs" : "Search US jobs"}
+        accessibilityState={{ disabled: !canSubmit, busy: isSearching }}
+        testID="search-submit"
+      >
+        <Text style={styles.actionText}>Search</Text>
+      </Pressable>
       <View style={styles.resultsRow}>
         <Text style={styles.resultsText}>
-          {jobs.length} {jobs.length === 1 ? "job" : "jobs"} found
+          {showResults ? jobs.length : 0} jobs loaded
         </Text>
         {activeFilterCount > 0 && (
           <Text style={styles.filterActiveText}>
@@ -118,29 +197,96 @@ export default function JobsScreen() {
           </Text>
         )}
       </View>
+      <Text style={styles.note}>
+        Filters apply only to loaded results, not all US jobs.
+      </Text>
+      {searchError && (
+        <View style={styles.status}>
+          <Text style={styles.errorText} accessibilityRole="alert">
+            {searchError}
+          </Text>
+          <Pressable
+            onPress={onRefresh}
+            disabled={busy}
+            style={[styles.secondaryButton, busy && styles.disabled]}
+            accessibilityRole="button"
+            accessibilityLabel="Retry job search"
+            accessibilityState={{ disabled: busy }}
+          >
+            <Text style={styles.secondaryText}>Retry</Text>
+          </Pressable>
+        </View>
+      )}
+      {isSearching && (
+        <View style={styles.status} accessibilityLiveRegion="polite">
+          <ActivityIndicator
+            color={Colors.dark.tint}
+            accessibilityLabel="Searching US jobs"
+          />
+          <Text style={styles.note}>Searching US jobs…</Text>
+        </View>
+      )}
     </View>
   );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <FlatList
-        data={jobs}
+        data={showResults ? jobs : []}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
-          <EmptyState
-            icon={<Search size={32} color={Colors.dark.textMuted} />}
-            title="No jobs found"
-            subtitle="Try adjusting your search or filters to see more results"
-          />
+          !isSearching && !searchError ? (
+            <EmptyState
+              icon={<Search size={32} color={Colors.dark.textMuted} />}
+              title={showResults ? "No jobs found" : "Search US jobs"}
+              subtitle={
+                !showResults
+                  ? "Enter keywords and tap Search to find jobs in the United States."
+                  : isDemo
+                    ? "Try another keyword or adjust your demo filters."
+                    : "Try different keywords, a broader location, or adjust filters on the loaded results."
+              }
+            />
+          ) : null
+        }
+        ListFooterComponent={
+          showResults && !isDemo && (hasNextPage || isFetchingNextPage) ? (
+            <View style={styles.footer}>
+              <Pressable
+                onPress={onLoadMore}
+                disabled={busy}
+                style={[styles.secondaryButton, busy && styles.disabled]}
+                accessibilityRole="button"
+                accessibilityLabel="Load more jobs"
+                accessibilityState={{
+                  disabled: busy,
+                  busy: isFetchingNextPage,
+                }}
+                testID="load-more"
+              >
+                {isFetchingNextPage && (
+                  <ActivityIndicator
+                    color={Colors.dark.tint}
+                    accessibilityLabel="Loading more jobs"
+                  />
+                )}
+                <Text style={styles.secondaryText}>
+                  {isFetchingNextPage ? "Loading more…" : "Load more"}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null
         }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={isSearching}
             onRefresh={onRefresh}
+            enabled={showResults && !busy}
             tintColor={Colors.dark.tint}
           />
         }
@@ -150,54 +296,68 @@ export default function JobsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.dark.background,
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
-  headerContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
-  },
-
+  container: { flex: 1, backgroundColor: Colors.dark.background },
+  listContent: { paddingBottom: 20 },
+  headerContent: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16 },
   title: {
     fontSize: 28,
-    fontWeight: "800" as const,
+    fontWeight: "800",
     color: Colors.dark.text,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: Colors.dark.textSecondary,
     marginBottom: 16,
   },
-  searchRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 14,
-  },
+  searchRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
   searchBar: {
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.dark.surface,
     borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 48,
-    gap: 10,
+    paddingHorizontal: 12,
+    minHeight: 48,
+    gap: 8,
     borderWidth: 1,
     borderColor: Colors.dark.border,
   },
-  searchBarFocused: {
-    borderColor: Colors.dark.tint,
-  },
+  searchBarFocused: { borderColor: Colors.dark.tint },
   searchInput: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     fontSize: 15,
     color: Colors.dark.text,
     height: 48,
   },
+  locationInput: {
+    minWidth: 0,
+    width: "100%",
+    minHeight: 48,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    color: Colors.dark.text,
+    backgroundColor: Colors.dark.surface,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    borderRadius: 14,
+  },
+  remoteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginVertical: 12,
+  },
+  remoteText: { flexShrink: 1, fontSize: 15, color: Colors.dark.textSecondary },
   filterBtn: {
     width: 48,
     height: 48,
+    flexShrink: 0,
     borderRadius: 14,
     backgroundColor: Colors.dark.surface,
     alignItems: "center",
@@ -222,22 +382,62 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     fontSize: 9,
-    fontWeight: "700" as const,
+    fontWeight: "700",
     color: Colors.dark.background,
   },
+  actionButton: {
+    minHeight: 48,
+    borderRadius: 14,
+    backgroundColor: Colors.dark.tint,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    marginVertical: 8,
+  },
+  actionText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: Colors.dark.background,
+  },
+  disabled: { opacity: 0.5 },
   resultsRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
+    marginTop: 12,
   },
   resultsText: {
     fontSize: 13,
     color: Colors.dark.textMuted,
-    fontWeight: "500" as const,
+    fontWeight: "500",
+    flexShrink: 1,
   },
   filterActiveText: {
     fontSize: 12,
     color: Colors.dark.tint,
-    fontWeight: "600" as const,
+    fontWeight: "600",
+    flexShrink: 1,
   },
+  note: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: Colors.dark.textMuted,
+    marginTop: 6,
+  },
+  status: { gap: 8, marginTop: 16 },
+  errorText: { fontSize: 14, color: Colors.dark.text, flexShrink: 1 },
+  secondaryButton: {
+    minHeight: 48,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.dark.tint,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  secondaryText: { fontSize: 14, fontWeight: "600", color: Colors.dark.tint },
+  footer: { paddingHorizontal: 16, paddingBottom: 16 },
 });

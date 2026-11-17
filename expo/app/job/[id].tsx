@@ -38,7 +38,7 @@ export default function JobDetailScreen() {
     [dismiss, router],
   );
   const insets = useSafeAreaInsets();
-  const { job, saved, toggle } = useJobById(id ?? "");
+  const { job, saved, toggle, isLoading } = useJobById(id ?? "");
   const bookmarkScale = useRef(new Animated.Value(1)).current;
 
   const handleApply = useCallback(() => {
@@ -77,7 +77,9 @@ export default function JobDetailScreen() {
           </Pressable>
         </View>
         <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>Job not found</Text>
+          <Text style={styles.notFoundText}>
+            {isLoading ? "Loading job…" : "Job not found"}
+          </Text>
         </View>
       </Animated.View>
     );

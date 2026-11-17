@@ -104,6 +104,17 @@ export function normalizeJob(input: unknown, id: string): Job {
     salaryMin,
     salaryMax,
     currency: text(raw.currency),
+    // Older local snapshots/mocks were explicitly annual; live adapters pass a period.
+    salaryPeriod:
+      raw.salaryPeriod === undefined
+        ? "year"
+        : option(raw.salaryPeriod, [
+            "hour",
+            "day",
+            "week",
+            "month",
+            "year",
+          ] as const),
     description: text(raw.description),
     requirements: list(raw.requirements),
     skills: list(raw.skills),
@@ -115,7 +126,8 @@ export function normalizeJob(input: unknown, id: string): Job {
 }
 
 export function formatJobSalary(
-  job: Pick<Job, "salaryMin" | "salaryMax" | "currency">,
+  job: Pick<Job, "salaryMin" | "salaryMax" | "currency"> &
+    Pick<Partial<Job>, "salaryPeriod">,
   annual = false,
 ): string {
   const { salaryMin: min, salaryMax: max, currency } = job;
@@ -126,13 +138,22 @@ export function formatJobSalary(
     !Number.isFinite(max) ||
     min < 0 ||
     max < min ||
-    currency === UNKNOWN
+    currency === UNKNOWN ||
+    job.salaryPeriod === UNKNOWN
   )
     return UNKNOWN;
   const prefix = currency === "USD" ? "$" : `${currency} `;
   const amount = (n: number) =>
     `${prefix}${n >= 1000 ? `${Math.round(n / 1000)}k` : n}`;
-  return `${amount(min)} - ${amount(max)}${annual ? "/yr" : ""}`;
+  const period = job.salaryPeriod ?? "year";
+  const suffix = {
+    hour: "/hr",
+    day: "/day",
+    week: "/wk",
+    month: "/mo",
+    year: annual ? "/yr" : "",
+  }[period];
+  return `${amount(min)} - ${amount(max)}${suffix}`;
 }
 
 export function formatJobAge(postedAt: string, compact = false): string {
@@ -167,8 +188,7 @@ export function getJobDisplay(job: Job) {
   return {
     title: job.title === UNKNOWN ? "Title Unavailable" : job.title,
     company: job.company === UNKNOWN ? "Company unknown" : job.company,
-    location:
-      job.location === UNKNOWN ? "Location unknown" : job.location,
+    location: job.location === UNKNOWN ? "Location unknown" : job.location,
     salary: salary === UNKNOWN ? null : salary,
     salaryAnnual:
       salary === UNKNOWN ? "Salary unknown" : formatJobSalary(job, true),
@@ -182,9 +202,7 @@ export function getJobDisplay(job: Job) {
     cardDate:
       age === UNKNOWN ? "Date unknown" : formatJobAge(job.postedAt, true),
     description:
-      job.description === UNKNOWN
-        ? "Description unknown"
-        : job.description,
+      job.description === UNKNOWN ? "Description unknown" : job.description,
     requirements: job.requirements.filter((value) => value !== UNKNOWN),
     skills: job.skills.filter((value) => value !== UNKNOWN),
     source,
@@ -225,7 +243,9 @@ export function matchesJobFilters(job: Job, filters: Filters): boolean {
   const salaryFiltered = filters.salaryMin > 0 || filters.salaryMax < 300000;
   if (
     salaryFiltered &&
-    (job.salaryMin === null ||
+    ((job.salaryPeriod !== undefined && job.salaryPeriod !== "year") ||
+      job.currency !== "USD" ||
+      job.salaryMin === null ||
       job.salaryMax === null ||
       job.salaryMax < filters.salaryMin ||
       job.salaryMin > filters.salaryMax)

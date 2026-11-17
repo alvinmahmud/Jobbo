@@ -21,7 +21,7 @@ import {
   JobType,
   ExperienceLevel,
 } from "@/types";
-import { JOB_SOURCES } from "@/mocks/jobs";
+import { UNKNOWN } from "@/utils/jobs";
 import { useWebScreenTransition } from "@/components/useWebScreenTransition";
 
 const WORK_TYPE_OPTIONS: { value: WorkType; label: string }[] = [
@@ -57,7 +57,12 @@ export default function FilterScreen() {
   const router = useRouter();
   const { style: transitionStyle, dismiss } = useWebScreenTransition("y");
   const insets = useSafeAreaInsets();
-  const { filters, setFilters } = useJobs();
+  const { filters, setFilters, allJobs } = useJobs();
+  const sources = [
+    ...new Set([...allJobs.map((job) => job.source), ...filters.sources]),
+  ]
+    .filter((source) => source !== UNKNOWN)
+    .sort();
   const [draft, setDraft] = useState<Filters>({ ...filters });
 
   const toggleArrayItem = useCallback(
@@ -228,7 +233,7 @@ export default function FilterScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Source</Text>
           <View style={styles.pillRow}>
-            {JOB_SOURCES.map((source) => {
+            {sources.map((source) => {
               const active = draft.sources.includes(source);
               const color = Colors.sources[source] ?? Colors.dark.accent;
               return (

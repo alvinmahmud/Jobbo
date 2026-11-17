@@ -1,0 +1,11 @@
+{
+  "name": "jobbo-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "api": "node --env-file-if-exists=.env server/index.mjs",
+    "web": "npm --prefix expo run start-web",
+    "test": "node --test server/*.test.mjs && npm --prefix expo test"
+  }
+}

@@ -2,6 +2,9 @@ export type WorkType = "remote" | "hybrid" | "onsite";
 export type JobType = "full-time" | "part-time" | "contract" | "internship";
 export type ExperienceLevel = "entry" | "mid" | "senior" | "lead" | "executive";
 
+export type SalaryPeriod =
+  "hour" | "day" | "week" | "month" | "year" | "unknown";
+
 export interface Job {
   id: string;
   title: string;
@@ -14,6 +17,7 @@ export interface Job {
   salaryMin: number | null;
   salaryMax: number | null;
   currency: string;
+  salaryPeriod?: SalaryPeriod;
   description: string;
   requirements: string[];
   skills: string[];
