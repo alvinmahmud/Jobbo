@@ -1,12 +1,31 @@
 import React, { useCallback, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, Linking, Platform, Animated } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Linking,
+  Platform,
+  Animated,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
-import { ArrowLeft, Bookmark, MapPin, Clock, DollarSign, Briefcase, TrendingUp, ExternalLink } from "@/components/icons";
+import {
+  ArrowLeft,
+  Bookmark,
+  MapPin,
+  Clock,
+  DollarSign,
+  Briefcase,
+  TrendingUp,
+  ExternalLink,
+} from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useJobById } from "@/providers/JobProvider";
+import { useWebScreenTransition } from "@/components/useWebScreenTransition";
 
 const WORK_TYPE_LABELS: Record<string, string> = {
   remote: "Remote",
@@ -49,6 +68,11 @@ const getTimeAgo = (dateStr: string) => {
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { style: transitionStyle, dismiss } = useWebScreenTransition("x");
+  const handleBack = useCallback(
+    () => dismiss(() => router.back()),
+    [dismiss, router],
+  );
   const insets = useSafeAreaInsets();
   const { job, saved, toggle } = useJobById(id ?? "");
   const bookmarkScale = useRef(new Animated.Value(1)).current;
@@ -80,47 +104,67 @@ export default function JobDetailScreen() {
 
   if (!job) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <Animated.View style={[styles.container, { paddingTop: insets.top }, transitionStyle]}>
         <View style={styles.topBar}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+          <Pressable onPress={handleBack} style={styles.backBtn}>
             <ArrowLeft size={22} color={Colors.dark.text} />
           </Pressable>
         </View>
         <View style={styles.notFound}>
           <Text style={styles.notFoundText}>Job not found</Text>
         </View>
-      </View>
+      </Animated.View>
     );
   }
 
   const sourceColor = Colors.sources[job.source] ?? Colors.dark.accent;
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, transitionStyle]}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top, paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top, paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.topBar}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+          <Pressable onPress={handleBack} style={styles.backBtn}>
             <ArrowLeft size={22} color={Colors.dark.text} />
           </Pressable>
           <View style={styles.topBarRight}>
             <Pressable onPress={handleBookmark} style={styles.iconBtn}>
               <Animated.View style={{ transform: [{ scale: bookmarkScale }] }}>
-                <Bookmark size={22} color={saved ? Colors.dark.tint : Colors.dark.textSecondary} fill={saved ? Colors.dark.tint : "none"} />
+                <Bookmark
+                  size={22}
+                  color={saved ? Colors.dark.tint : Colors.dark.textSecondary}
+                  fill={saved ? Colors.dark.tint : "none"}
+                />
               </Animated.View>
             </Pressable>
           </View>
         </View>
 
         <View style={styles.companySection}>
-          <Image source={{ uri: job.companyLogo }} style={styles.logo} contentFit='cover' />
+          <Image
+            source={{ uri: job.companyLogo }}
+            style={styles.logo}
+            contentFit="cover"
+          />
           <Text style={styles.company}>{job.company}</Text>
-          <View style={[styles.sourceBadge, { backgroundColor: sourceColor + "22" }]}>
-            <View style={[styles.sourceDot, { backgroundColor: sourceColor }]} />
-            <Text style={[styles.sourceText, { color: sourceColor }]}>via {job.source}</Text>
+          <View
+            style={[
+              styles.sourceBadge,
+              { backgroundColor: sourceColor + "22" },
+            ]}
+          >
+            <View
+              style={[styles.sourceDot, { backgroundColor: sourceColor }]}
+            />
+            <Text style={[styles.sourceText, { color: sourceColor }]}>
+              via {job.source}
+            </Text>
           </View>
         </View>
 
@@ -128,7 +172,12 @@ export default function JobDetailScreen() {
 
         <View style={styles.metaGrid}>
           <View style={styles.metaItem}>
-            <View style={[styles.metaIcon, { backgroundColor: Colors.dark.tintLight }]}>
+            <View
+              style={[
+                styles.metaIcon,
+                { backgroundColor: Colors.dark.tintLight },
+              ]}
+            >
               <MapPin size={16} color={Colors.dark.tint} />
             </View>
             <View>
@@ -137,32 +186,47 @@ export default function JobDetailScreen() {
             </View>
           </View>
           <View style={styles.metaItem}>
-            <View style={[styles.metaIcon, { backgroundColor: Colors.dark.accentLight }]}>
+            <View
+              style={[
+                styles.metaIcon,
+                { backgroundColor: Colors.dark.accentLight },
+              ]}
+            >
               <DollarSign size={16} color={Colors.dark.accent} />
             </View>
             <View>
               <Text style={styles.metaLabel}>Salary</Text>
-              <Text style={styles.metaValue}>{formatSalary(job.salaryMin, job.salaryMax)}</Text>
+              <Text style={styles.metaValue}>
+                {formatSalary(job.salaryMin, job.salaryMax)}
+              </Text>
             </View>
           </View>
           <View style={styles.metaItem}>
-            <View style={[styles.metaIcon, { backgroundColor: Colors.dark.warningLight }]}>
+            <View
+              style={[
+                styles.metaIcon,
+                { backgroundColor: Colors.dark.warningLight },
+              ]}
+            >
               <Briefcase size={16} color={Colors.dark.warning} />
             </View>
             <View>
               <Text style={styles.metaLabel}>Type</Text>
               <Text style={styles.metaValue}>
-                {JOB_TYPE_LABELS[job.jobType]} · {WORK_TYPE_LABELS[job.workType]}
+                {JOB_TYPE_LABELS[job.jobType]} ·{" "}
+                {WORK_TYPE_LABELS[job.workType]}
               </Text>
             </View>
           </View>
           <View style={styles.metaItem}>
             <View style={[styles.metaIcon, { backgroundColor: "#8B5CF622" }]}>
-              <TrendingUp size={16} color='#8B5CF6' />
+              <TrendingUp size={16} color="#8B5CF6" />
             </View>
             <View>
               <Text style={styles.metaLabel}>Level</Text>
-              <Text style={styles.metaValue}>{EXP_LABELS[job.experienceLevel]}</Text>
+              <Text style={styles.metaValue}>
+                {EXP_LABELS[job.experienceLevel]}
+              </Text>
             </View>
           </View>
         </View>
@@ -199,13 +263,22 @@ export default function JobDetailScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <Pressable onPress={handleApply} style={styles.applyBtn} testID='apply-button'>
+      <View
+        style={[
+          styles.bottomBar,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
+        <Pressable
+          onPress={handleApply}
+          style={styles.applyBtn}
+          testID="apply-button"
+        >
           <ExternalLink size={18} color={Colors.dark.background} />
           <Text style={styles.applyBtnText}>Apply on {job.source}</Text>
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

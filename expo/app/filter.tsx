@@ -1,13 +1,28 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Platform,
+  Animated,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { X, RotateCcw, Check } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useJobs } from "@/providers/JobProvider";
-import { Filters, DEFAULT_FILTERS, WorkType, JobType, ExperienceLevel } from "@/types";
+import {
+  Filters,
+  DEFAULT_FILTERS,
+  WorkType,
+  JobType,
+  ExperienceLevel,
+} from "@/types";
 import { JOB_SOURCES } from "@/mocks/jobs";
+import { useWebScreenTransition } from "@/components/useWebScreenTransition";
 
 const WORK_TYPE_OPTIONS: { value: WorkType; label: string }[] = [
   { value: "remote", label: "Remote" },
@@ -40,34 +55,45 @@ const SALARY_PRESETS = [
 
 export default function FilterScreen() {
   const router = useRouter();
+  const { style: transitionStyle, dismiss } = useWebScreenTransition("y");
   const insets = useSafeAreaInsets();
   const { filters, setFilters } = useJobs();
   const [draft, setDraft] = useState<Filters>({ ...filters });
 
-  const toggleArrayItem = useCallback(<T extends string>(arr: T[], item: T): T[] => {
-    return arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
-  }, []);
+  const toggleArrayItem = useCallback(
+    <T extends string>(arr: T[], item: T): T[] => {
+      return arr.includes(item)
+        ? arr.filter((i) => i !== item)
+        : [...arr, item];
+    },
+    [],
+  );
 
   const handleApply = useCallback(() => {
     if (Platform.OS !== "web") {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    setFilters({ ...draft });
-    router.back();
-  }, [draft, setFilters, router]);
+    dismiss(() => {
+      setFilters({ ...draft });
+      router.back();
+    });
+  }, [draft, setFilters, router, dismiss]);
 
   const handleReset = useCallback(() => {
     setDraft({ ...DEFAULT_FILTERS, search: filters.search });
   }, [filters.search]);
 
   const handleClose = useCallback(() => {
-    router.back();
-  }, [router]);
+    dismiss(() => router.back());
+  }, [router, dismiss]);
 
-  const isSalarySelected = (min: number, max: number) => draft.salaryMin === min && draft.salaryMax === max;
+  const isSalarySelected = (min: number, max: number) =>
+    draft.salaryMin === min && draft.salaryMax === max;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <Animated.View
+      style={[styles.container, { paddingTop: insets.top }, transitionStyle]}
+    >
       <View style={styles.header}>
         <Pressable onPress={handleClose} style={styles.closeBtn}>
           <X size={20} color={Colors.dark.text} />
@@ -79,7 +105,14 @@ export default function FilterScreen() {
         </Pressable>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Work Type</Text>
           <View style={styles.pillRow}>
@@ -96,7 +129,11 @@ export default function FilterScreen() {
                   }
                   style={[styles.pill, active && styles.pillActive]}
                 >
-                  <Text style={[styles.pillText, active && styles.pillTextActive]}>{opt.label}</Text>
+                  <Text
+                    style={[styles.pillText, active && styles.pillTextActive]}
+                  >
+                    {opt.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -119,7 +156,11 @@ export default function FilterScreen() {
                   }
                   style={[styles.pill, active && styles.pillActive]}
                 >
-                  <Text style={[styles.pillText, active && styles.pillTextActive]}>{opt.label}</Text>
+                  <Text
+                    style={[styles.pillText, active && styles.pillTextActive]}
+                  >
+                    {opt.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -137,12 +178,19 @@ export default function FilterScreen() {
                   onPress={() =>
                     setDraft((p) => ({
                       ...p,
-                      experienceLevels: toggleArrayItem(p.experienceLevels, opt.value),
+                      experienceLevels: toggleArrayItem(
+                        p.experienceLevels,
+                        opt.value,
+                      ),
                     }))
                   }
                   style={[styles.pill, active && styles.pillActive]}
                 >
-                  <Text style={[styles.pillText, active && styles.pillTextActive]}>{opt.label}</Text>
+                  <Text
+                    style={[styles.pillText, active && styles.pillTextActive]}
+                  >
+                    {opt.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -166,7 +214,11 @@ export default function FilterScreen() {
                   }
                   style={[styles.pill, active && styles.pillActive]}
                 >
-                  <Text style={[styles.pillText, active && styles.pillTextActive]}>{preset.label}</Text>
+                  <Text
+                    style={[styles.pillText, active && styles.pillTextActive]}
+                  >
+                    {preset.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -188,10 +240,25 @@ export default function FilterScreen() {
                       sources: toggleArrayItem(p.sources, source),
                     }))
                   }
-                  style={[styles.pill, active && { backgroundColor: color + "22", borderColor: color }]}
+                  style={[
+                    styles.pill,
+                    active && {
+                      backgroundColor: color + "22",
+                      borderColor: color,
+                    },
+                  ]}
                 >
-                  {active && <View style={[styles.sourceIndicator, { backgroundColor: color }]} />}
-                  <Text style={[styles.pillText, active && { color }]}>{source}</Text>
+                  {active && (
+                    <View
+                      style={[
+                        styles.sourceIndicator,
+                        { backgroundColor: color },
+                      ]}
+                    />
+                  )}
+                  <Text style={[styles.pillText, active && { color }]}>
+                    {source}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -199,13 +266,18 @@ export default function FilterScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <Pressable onPress={handleApply} style={styles.applyBtn}>
           <Check size={18} color={Colors.dark.background} />
           <Text style={styles.applyBtnText}>Apply Filters</Text>
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

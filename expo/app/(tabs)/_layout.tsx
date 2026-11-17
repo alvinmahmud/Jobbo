@@ -2,11 +2,17 @@ import { Tabs } from "expo-router";
 import { Briefcase, Bookmark, User } from "@/components/icons";
 import React from "react";
 import Colors from "@/constants/colors";
+import { useReducedMotion } from "@/components/useReducedMotion";
 
 export default function TabLayout() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <Tabs
       screenOptions={{
+        animation: reduceMotion ? "none" : "fade",
+        transitionSpec: { animation: "timing", config: { duration: 180 } },
+        sceneStyle: { backgroundColor: Colors.dark.background },
         tabBarActiveTintColor: Colors.dark.tint,
         tabBarInactiveTintColor: Colors.dark.tabIconDefault,
         headerShown: false,
@@ -22,21 +28,25 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name='(home)'
+        name="(home)"
         options={{
           title: "Jobs",
-          tabBarIcon: ({ color, size }) => <Briefcase size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Briefcase size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name='saved'
+        name="saved"
         options={{
           title: "Saved",
-          tabBarIcon: ({ color, size }) => <Bookmark size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Bookmark size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name='profile'
+        name="profile"
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
