@@ -1,11 +1,14 @@
 import { Job } from "@/types";
+import { normalizeJob } from "@/utils/jobs";
 
 export const MOCK_JOBS: Job[] = [
+  normalizeJob({}, "unknown-demo"),
   {
     id: "1",
     title: "Senior React Native Developer",
     company: "TechFlow Inc.",
-    companyLogo: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=100&h=100&fit=crop",
     location: "San Francisco, CA",
     workType: "remote",
     jobType: "full-time",
@@ -23,7 +26,14 @@ export const MOCK_JOBS: Job[] = [
       "Experience with CI/CD pipelines for mobile apps",
       "Strong communication skills for remote collaboration",
     ],
-    skills: ["React Native", "TypeScript", "GraphQL", "Redux", "iOS", "Android"],
+    skills: [
+      "React Native",
+      "TypeScript",
+      "GraphQL",
+      "Redux",
+      "iOS",
+      "Android",
+    ],
     source: "LinkedIn",
     sourceUrl: "https://linkedin.com/jobs/1",
     postedAt: "2026-03-12",
@@ -33,7 +43,8 @@ export const MOCK_JOBS: Job[] = [
     id: "2",
     title: "Full Stack Engineer",
     company: "Cloudwave",
-    companyLogo: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=100&h=100&fit=crop",
     location: "New York, NY",
     workType: "hybrid",
     jobType: "full-time",
@@ -60,7 +71,8 @@ export const MOCK_JOBS: Job[] = [
     id: "3",
     title: "iOS Developer",
     company: "Pixel Perfect Labs",
-    companyLogo: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=100&h=100&fit=crop",
     location: "Austin, TX",
     workType: "onsite",
     jobType: "full-time",
@@ -87,7 +99,8 @@ export const MOCK_JOBS: Job[] = [
     id: "4",
     title: "DevOps Engineer",
     company: "InfraScale",
-    companyLogo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&h=100&fit=crop",
     location: "Remote - US",
     workType: "remote",
     jobType: "full-time",
@@ -114,7 +127,8 @@ export const MOCK_JOBS: Job[] = [
     id: "5",
     title: "Product Designer",
     company: "DesignHub",
-    companyLogo: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=100&h=100&fit=crop",
     location: "Los Angeles, CA",
     workType: "hybrid",
     jobType: "full-time",
@@ -131,7 +145,13 @@ export const MOCK_JOBS: Job[] = [
       "Experience conducting user research and usability testing",
       "Understanding of design systems and component libraries",
     ],
-    skills: ["Figma", "UI/UX", "Prototyping", "User Research", "Design Systems"],
+    skills: [
+      "Figma",
+      "UI/UX",
+      "Prototyping",
+      "User Research",
+      "Design Systems",
+    ],
     source: "AngelList",
     sourceUrl: "https://angel.co/jobs/5",
     postedAt: "2026-03-08",
@@ -141,7 +161,8 @@ export const MOCK_JOBS: Job[] = [
     id: "6",
     title: "Backend Engineer - Python",
     company: "DataStream AI",
-    companyLogo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&h=100&fit=crop",
     location: "Seattle, WA",
     workType: "remote",
     jobType: "full-time",
@@ -158,7 +179,14 @@ export const MOCK_JOBS: Job[] = [
       "Understanding of ML model serving and deployment",
       "Experience with distributed systems",
     ],
-    skills: ["Python", "FastAPI", "Kafka", "PostgreSQL", "Redis", "Machine Learning"],
+    skills: [
+      "Python",
+      "FastAPI",
+      "Kafka",
+      "PostgreSQL",
+      "Redis",
+      "Machine Learning",
+    ],
     source: "LinkedIn",
     sourceUrl: "https://linkedin.com/jobs/6",
     postedAt: "2026-03-07",
@@ -168,7 +196,8 @@ export const MOCK_JOBS: Job[] = [
     id: "7",
     title: "Frontend Developer - Vue.js",
     company: "GreenTech Solutions",
-    companyLogo: "https://images.unsplash.com/photo-1497215842964-222b430dc094?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1497215842964-222b430dc094?w=100&h=100&fit=crop",
     location: "Denver, CO",
     workType: "onsite",
     jobType: "full-time",
@@ -195,7 +224,8 @@ export const MOCK_JOBS: Job[] = [
     id: "8",
     title: "Engineering Manager",
     company: "FinanceForward",
-    companyLogo: "https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=100&h=100&fit=crop",
     location: "Chicago, IL",
     workType: "hybrid",
     jobType: "full-time",
@@ -212,7 +242,14 @@ export const MOCK_JOBS: Job[] = [
       "Experience with agile methodologies",
       "Excellent leadership and communication skills",
     ],
-    skills: ["Leadership", "System Design", "Agile", "Mentoring", "Java", "Microservices"],
+    skills: [
+      "Leadership",
+      "System Design",
+      "Agile",
+      "Mentoring",
+      "Java",
+      "Microservices",
+    ],
     source: "Glassdoor",
     sourceUrl: "https://glassdoor.com/jobs/8",
     postedAt: "2026-03-05",
@@ -222,7 +259,8 @@ export const MOCK_JOBS: Job[] = [
     id: "9",
     title: "ML Engineer - NLP",
     company: "LangTech",
-    companyLogo: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=100&h=100&fit=crop",
     location: "Remote - Worldwide",
     workType: "remote",
     jobType: "contract",
@@ -249,7 +287,8 @@ export const MOCK_JOBS: Job[] = [
     id: "10",
     title: "QA Automation Engineer",
     company: "TestPilot",
-    companyLogo: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&h=100&fit=crop",
     location: "Portland, OR",
     workType: "remote",
     jobType: "full-time",
@@ -276,7 +315,8 @@ export const MOCK_JOBS: Job[] = [
     id: "11",
     title: "Data Analyst",
     company: "MetricsFirst",
-    companyLogo: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1551434678-e076c223a692?w=100&h=100&fit=crop",
     location: "Boston, MA",
     workType: "hybrid",
     jobType: "full-time",
@@ -293,7 +333,14 @@ export const MOCK_JOBS: Job[] = [
       "Basic knowledge of Python or R for statistical analysis",
       "Strong communication and presentation skills",
     ],
-    skills: ["SQL", "Python", "Tableau", "Excel", "Statistics", "Data Visualization"],
+    skills: [
+      "SQL",
+      "Python",
+      "Tableau",
+      "Excel",
+      "Statistics",
+      "Data Visualization",
+    ],
     source: "Indeed",
     sourceUrl: "https://indeed.com/jobs/11",
     postedAt: "2026-03-02",
@@ -303,7 +350,8 @@ export const MOCK_JOBS: Job[] = [
     id: "12",
     title: "Startup CTO (Co-founder)",
     company: "Stealth Startup",
-    companyLogo: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=100&h=100&fit=crop",
+    companyLogo:
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=100&h=100&fit=crop",
     location: "Remote - US",
     workType: "remote",
     jobType: "full-time",
@@ -320,12 +368,27 @@ export const MOCK_JOBS: Job[] = [
       "Full stack technical proficiency",
       "Passion for healthcare and technology",
     ],
-    skills: ["Leadership", "Architecture", "Full Stack", "Team Building", "Strategy"],
+    skills: [
+      "Leadership",
+      "Architecture",
+      "Full Stack",
+      "Team Building",
+      "Strategy",
+    ],
     source: "AngelList",
     sourceUrl: "https://angel.co/jobs/12",
     postedAt: "2026-03-01",
     isNew: false,
   },
-];
+].map((job) => normalizeJob(job, job.id));
 
-export const JOB_SOURCES = ["LinkedIn", "Indeed", "Glassdoor", "Remote.co", "AngelList", "Stack Overflow", "GitHub Jobs", "We Work Remotely"];
+export const JOB_SOURCES = [
+  "LinkedIn",
+  "Indeed",
+  "Glassdoor",
+  "Remote.co",
+  "AngelList",
+  "Stack Overflow",
+  "GitHub Jobs",
+  "We Work Remotely",
+];

@@ -23,7 +23,10 @@ function RootLayoutNav() {
         gestureEnabled: true,
         headerStyle: { backgroundColor: Colors.dark.background },
         headerTintColor: Colors.dark.text,
-        contentStyle: { backgroundColor: Colors.dark.background },
+        contentStyle: {
+          backgroundColor: Colors.dark.background,
+          overflow: "hidden",
+        },
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -53,7 +56,9 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView
+        style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
+      >
         <JobProvider>
           <StatusBar style="light" />
           <RootLayoutNav />

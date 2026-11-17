@@ -1,5 +1,13 @@
 import React, { useCallback } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable, Alert, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  Alert,
+  Platform,
+} from "react-native";
 import { Bookmark, Trash2 } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -15,19 +23,25 @@ export default function SavedScreen() {
 
   const handleClearAll = useCallback(() => {
     if (savedIds.length === 0) return;
-    Alert.alert("Clear All Saved", "Are you sure you want to remove all saved jobs?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Clear All",
-        style: "destructive",
-        onPress: () => {
-          savedIds.forEach((id) => toggleSaved(id));
-          if (Platform.OS !== "web") {
-            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          }
+    Alert.alert(
+      "Clear All Saved",
+      "Are you sure you want to remove all saved jobs?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear All",
+          style: "destructive",
+          onPress: () => {
+            savedIds.forEach((id) => toggleSaved(id));
+            if (Platform.OS !== "web") {
+              void Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              );
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   }, [savedIds, toggleSaved]);
 
   const renderItem = useCallback(({ item }: { item: Job }) => {
@@ -58,9 +72,16 @@ export default function SavedScreen() {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={
-          <EmptyState icon={<Bookmark size={32} color={Colors.dark.textMuted} />} title='No saved jobs yet' subtitle='Tap the bookmark icon on any job to save it for later' />
+          <EmptyState
+            icon={<Bookmark size={32} color={Colors.dark.textMuted} />}
+            title="No saved jobs yet"
+            subtitle="Tap the bookmark icon on any job to save it for later"
+          />
         }
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          savedJobs.length === 0 && styles.emptyListContent,
+        ]}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -108,5 +129,10 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  emptyListContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingBottom: 0,
   },
 });

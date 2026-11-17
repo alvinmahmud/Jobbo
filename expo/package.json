@@ -6,7 +6,8 @@
     "start": "expo start --tunnel",
     "start-web": "expo start --web",
     "start-web-dev": "expo start --web --clear",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "node --test tests/*.test.cjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

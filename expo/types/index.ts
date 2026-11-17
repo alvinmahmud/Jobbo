@@ -8,11 +8,11 @@ export interface Job {
   company: string;
   companyLogo: string;
   location: string;
-  workType: WorkType;
-  jobType: JobType;
-  experienceLevel: ExperienceLevel;
-  salaryMin: number;
-  salaryMax: number;
+  workType: WorkType | "unknown";
+  jobType: JobType | "unknown";
+  experienceLevel: ExperienceLevel | "unknown";
+  salaryMin: number | null;
+  salaryMax: number | null;
   currency: string;
   description: string;
   requirements: string[];

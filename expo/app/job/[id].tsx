@@ -27,43 +27,14 @@ import Colors from "@/constants/colors";
 import { useJobById } from "@/providers/JobProvider";
 import { useWebScreenTransition } from "@/components/useWebScreenTransition";
 
-const WORK_TYPE_LABELS: Record<string, string> = {
-  remote: "Remote",
-  hybrid: "Hybrid",
-  onsite: "On-site",
-};
-
-const JOB_TYPE_LABELS: Record<string, string> = {
-  "full-time": "Full-time",
-  "part-time": "Part-time",
-  contract: "Contract",
-  internship: "Internship",
-};
-
-const EXP_LABELS: Record<string, string> = {
-  entry: "Entry Level",
-  mid: "Mid Level",
-  senior: "Senior",
-  lead: "Lead",
-  executive: "Executive",
-};
-
-const formatSalary = (min: number, max: number) => {
-  const fmt = (n: number) => `$${(n / 1000).toFixed(0)}k`;
-  return `${fmt(min)} - ${fmt(max)}/yr`;
-};
-
-const getTimeAgo = (dateStr: string) => {
-  const now = new Date();
-  const posted = new Date(dateStr);
-  const diffMs = now.getTime() - posted.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return `${Math.floor(diffDays / 30)} months ago`;
-};
+import {
+  UNKNOWN,
+  WORK_TYPE_LABELS,
+  JOB_TYPE_LABELS,
+  EXPERIENCE_LABELS,
+  formatJobSalary,
+  formatJobAge,
+} from "@/utils/jobs";
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -78,7 +49,7 @@ export default function JobDetailScreen() {
   const bookmarkScale = useRef(new Animated.Value(1)).current;
 
   const handleApply = useCallback(() => {
-    if (job?.sourceUrl) {
+    if (job?.sourceUrl && job.sourceUrl !== UNKNOWN) {
       void Linking.openURL(job.sourceUrl);
     }
   }, [job]);
@@ -104,7 +75,9 @@ export default function JobDetailScreen() {
 
   if (!job) {
     return (
-      <Animated.View style={[styles.container, { paddingTop: insets.top }, transitionStyle]}>
+      <Animated.View
+        style={[styles.container, { paddingTop: insets.top }, transitionStyle]}
+      >
         <View style={styles.topBar}>
           <Pressable onPress={handleBack} style={styles.backBtn}>
             <ArrowLeft size={22} color={Colors.dark.text} />
@@ -118,6 +91,8 @@ export default function JobDetailScreen() {
   }
 
   const sourceColor = Colors.sources[job.source] ?? Colors.dark.accent;
+  const age = formatJobAge(job.postedAt);
+  const canApply = !!job.sourceUrl && job.sourceUrl !== UNKNOWN;
 
   return (
     <Animated.View style={[styles.container, transitionStyle]}>
@@ -147,11 +122,17 @@ export default function JobDetailScreen() {
         </View>
 
         <View style={styles.companySection}>
-          <Image
-            source={{ uri: job.companyLogo }}
-            style={styles.logo}
-            contentFit="cover"
-          />
+          {job.companyLogo === UNKNOWN ? (
+            <View style={[styles.logo, styles.logoFallback]}>
+              <Text style={styles.logoFallbackText}>{UNKNOWN}</Text>
+            </View>
+          ) : (
+            <Image
+              source={{ uri: job.companyLogo }}
+              style={styles.logo}
+              contentFit="cover"
+            />
+          )}
           <Text style={styles.company}>{job.company}</Text>
           <View
             style={[
@@ -163,7 +144,7 @@ export default function JobDetailScreen() {
               style={[styles.sourceDot, { backgroundColor: sourceColor }]}
             />
             <Text style={[styles.sourceText, { color: sourceColor }]}>
-              via {job.source}
+              {job.source === UNKNOWN ? UNKNOWN : `via ${job.source}`}
             </Text>
           </View>
         </View>
@@ -196,9 +177,7 @@ export default function JobDetailScreen() {
             </View>
             <View>
               <Text style={styles.metaLabel}>Salary</Text>
-              <Text style={styles.metaValue}>
-                {formatSalary(job.salaryMin, job.salaryMax)}
-              </Text>
+              <Text style={styles.metaValue}>{formatJobSalary(job, true)}</Text>
             </View>
           </View>
           <View style={styles.metaItem}>
@@ -213,8 +192,9 @@ export default function JobDetailScreen() {
             <View>
               <Text style={styles.metaLabel}>Type</Text>
               <Text style={styles.metaValue}>
-                {JOB_TYPE_LABELS[job.jobType]} ·{" "}
-                {WORK_TYPE_LABELS[job.workType]}
+                {job.jobType === UNKNOWN && job.workType === UNKNOWN
+                  ? UNKNOWN
+                  : `${JOB_TYPE_LABELS[job.jobType]} · ${WORK_TYPE_LABELS[job.workType]}`}
               </Text>
             </View>
           </View>
@@ -225,7 +205,7 @@ export default function JobDetailScreen() {
             <View>
               <Text style={styles.metaLabel}>Level</Text>
               <Text style={styles.metaValue}>
-                {EXP_LABELS[job.experienceLevel]}
+                {EXPERIENCE_LABELS[job.experienceLevel]}
               </Text>
             </View>
           </View>
@@ -233,7 +213,9 @@ export default function JobDetailScreen() {
 
         <View style={styles.timeRow}>
           <Clock size={14} color={Colors.dark.textMuted} />
-          <Text style={styles.timeText}>Posted {getTimeAgo(job.postedAt)}</Text>
+          <Text style={styles.timeText}>
+            {age === UNKNOWN ? UNKNOWN : `Posted ${age}`}
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -271,11 +253,16 @@ export default function JobDetailScreen() {
       >
         <Pressable
           onPress={handleApply}
-          style={styles.applyBtn}
+          disabled={!canApply}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canApply }}
+          style={[styles.applyBtn, !canApply && styles.applyBtnDisabled]}
           testID="apply-button"
         >
           <ExternalLink size={18} color={Colors.dark.background} />
-          <Text style={styles.applyBtnText}>Apply on {job.source}</Text>
+          <Text style={styles.applyBtnText}>
+            {canApply ? `Apply on ${job.source}` : UNKNOWN}
+          </Text>
         </Pressable>
       </View>
     </Animated.View>
@@ -334,6 +321,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Colors.dark.surfaceElevated,
     marginBottom: 12,
+  },
+  logoFallback: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoFallbackText: {
+    fontSize: 12,
+    color: Colors.dark.textMuted,
   },
   company: {
     fontSize: 16,
@@ -480,6 +475,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.tint,
     paddingVertical: 16,
     borderRadius: 14,
+  },
+  applyBtnDisabled: {
+    opacity: 0.5,
   },
   applyBtnText: {
     fontSize: 16,

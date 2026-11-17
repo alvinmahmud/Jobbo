@@ -1,5 +1,12 @@
 import React, { useRef, useCallback } from "react";
-import { View, Text, StyleSheet, Pressable, Animated, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Animated,
+  Platform,
+} from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Bookmark, MapPin, Clock } from "@/components/icons";
@@ -7,36 +14,16 @@ import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { Job } from "@/types";
 import { useJobs } from "@/providers/JobProvider";
+import {
+  UNKNOWN,
+  WORK_TYPE_LABELS,
+  formatJobSalary,
+  formatJobAge,
+} from "@/utils/jobs";
 
 interface JobCardProps {
   job: Job;
 }
-
-const WORK_TYPE_LABELS: Record<string, string> = {
-  remote: "Remote",
-  hybrid: "Hybrid",
-  onsite: "On-site",
-};
-
-const formatSalary = (min: number, max: number) => {
-  const fmt = (n: number) => {
-    if (n >= 1000) return `$${Math.round(n / 1000)}k`;
-    return `$${n}`;
-  };
-  return `${fmt(min)} - ${fmt(max)}`;
-};
-
-const getTimeAgo = (dateStr: string) => {
-  const now = new Date();
-  const posted = new Date(dateStr);
-  const diffMs = now.getTime() - posted.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "1d ago";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return `${Math.floor(diffDays / 30)}mo ago`;
-};
 
 function JobCardInner({ job }: JobCardProps) {
   const router = useRouter();
@@ -87,7 +74,17 @@ function JobCardInner({ job }: JobCardProps) {
       <Pressable onPress={handlePress} style={styles.cardInner}>
         <View style={styles.cardHeader}>
           <View style={styles.companyRow}>
-            <Image source={{ uri: job.companyLogo }} style={styles.companyLogo} contentFit='cover' />
+            {job.companyLogo === UNKNOWN ? (
+              <View style={[styles.companyLogo, styles.logoFallback]}>
+                <Text style={styles.logoFallbackText}>{UNKNOWN}</Text>
+              </View>
+            ) : (
+              <Image
+                source={{ uri: job.companyLogo }}
+                style={styles.companyLogo}
+                contentFit="cover"
+              />
+            )}
             <View style={styles.companyInfo}>
               <Text style={styles.companyName} numberOfLines={1}>
                 {job.company}
@@ -100,9 +97,18 @@ function JobCardInner({ job }: JobCardProps) {
               </View>
             </View>
           </View>
-          <Pressable onPress={handleBookmark} hitSlop={12} style={styles.bookmarkBtn} testID={`bookmark-${job.id}`}>
+          <Pressable
+            onPress={handleBookmark}
+            hitSlop={12}
+            style={styles.bookmarkBtn}
+            testID={`bookmark-${job.id}`}
+          >
             <Animated.View style={{ transform: [{ scale: bookmarkScale }] }}>
-              <Bookmark size={20} color={saved ? Colors.dark.tint : Colors.dark.textMuted} fill={saved ? Colors.dark.tint : "none"} />
+              <Bookmark
+                size={20}
+                color={saved ? Colors.dark.tint : Colors.dark.textMuted}
+                fill={saved ? Colors.dark.tint : "none"}
+              />
             </Animated.View>
           </Pressable>
         </View>
@@ -112,27 +118,53 @@ function JobCardInner({ job }: JobCardProps) {
         </Text>
 
         <View style={styles.tagsRow}>
-          <View style={[styles.tag, { backgroundColor: Colors.dark.tintLight }]}>
-            <Text style={[styles.tagText, { color: Colors.dark.tint }]}>{formatSalary(job.salaryMin, job.salaryMax)}</Text>
+          <View
+            style={[styles.tag, { backgroundColor: Colors.dark.tintLight }]}
+          >
+            <Text style={[styles.tagText, { color: Colors.dark.tint }]}>
+              {formatJobSalary(job)}
+            </Text>
           </View>
-          <View style={[styles.tag, { backgroundColor: Colors.dark.accentLight }]}>
-            <Text style={[styles.tagText, { color: Colors.dark.accent }]}>{WORK_TYPE_LABELS[job.workType]}</Text>
+          <View
+            style={[styles.tag, { backgroundColor: Colors.dark.accentLight }]}
+          >
+            <Text style={[styles.tagText, { color: Colors.dark.accent }]}>
+              {WORK_TYPE_LABELS[job.workType]}
+            </Text>
           </View>
           {job.isNew && (
-            <View style={[styles.tag, { backgroundColor: Colors.dark.warningLight }]}>
-              <Text style={[styles.tagText, { color: Colors.dark.warning }]}>New</Text>
+            <View
+              style={[
+                styles.tag,
+                { backgroundColor: Colors.dark.warningLight },
+              ]}
+            >
+              <Text style={[styles.tagText, { color: Colors.dark.warning }]}>
+                New
+              </Text>
             </View>
           )}
         </View>
 
         <View style={styles.cardFooter}>
-          <View style={[styles.sourceBadge, { backgroundColor: sourceColor + "22" }]}>
-            <View style={[styles.sourceDot, { backgroundColor: sourceColor }]} />
-            <Text style={[styles.sourceText, { color: sourceColor }]}>{job.source}</Text>
+          <View
+            style={[
+              styles.sourceBadge,
+              { backgroundColor: sourceColor + "22" },
+            ]}
+          >
+            <View
+              style={[styles.sourceDot, { backgroundColor: sourceColor }]}
+            />
+            <Text style={[styles.sourceText, { color: sourceColor }]}>
+              {job.source}
+            </Text>
           </View>
           <View style={styles.timeRow}>
             <Clock size={12} color={Colors.dark.textMuted} />
-            <Text style={styles.timeText}>{getTimeAgo(job.postedAt)}</Text>
+            <Text style={styles.timeText}>
+              {formatJobAge(job.postedAt, true)}
+            </Text>
           </View>
         </View>
       </Pressable>
@@ -172,6 +204,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 10,
     backgroundColor: Colors.dark.surfaceElevated,
+  },
+  logoFallback: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoFallbackText: {
+    fontSize: 9,
+    color: Colors.dark.textMuted,
   },
   companyInfo: {
     marginLeft: 10,

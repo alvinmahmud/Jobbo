@@ -1,6 +1,25 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
-import { User, MapPin, Briefcase, TrendingUp, FileText, Plus, Check, ChevronDown } from "@/components/icons";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Pressable,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import {
+  User,
+  MapPin,
+  Briefcase,
+  TrendingUp,
+  FileText,
+  Plus,
+  Check,
+  ChevronDown,
+} from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
@@ -100,7 +119,9 @@ export default function ProfileScreen() {
       "Figma",
     ];
 
-    const foundSkills = techSkills.filter((skill) => text.includes(skill.toLowerCase()));
+    const foundSkills = techSkills.filter((skill) =>
+      text.includes(skill.toLowerCase()),
+    );
     if (foundSkills.length > 0) {
       parsedProfile.skills = foundSkills;
     }
@@ -127,11 +148,23 @@ export default function ProfileScreen() {
       }
     }
 
-    if (text.includes("senior") || text.includes("5+ years") || text.includes("7+ years")) {
+    if (
+      text.includes("senior") ||
+      text.includes("5+ years") ||
+      text.includes("7+ years")
+    ) {
       parsedProfile.experienceLevel = "senior";
-    } else if (text.includes("lead") || text.includes("manager") || text.includes("10+ years")) {
+    } else if (
+      text.includes("lead") ||
+      text.includes("manager") ||
+      text.includes("10+ years")
+    ) {
       parsedProfile.experienceLevel = "lead";
-    } else if (text.includes("junior") || text.includes("entry") || text.includes("1+ year")) {
+    } else if (
+      text.includes("junior") ||
+      text.includes("entry") ||
+      text.includes("1+ year")
+    ) {
       parsedProfile.experienceLevel = "entry";
     } else {
       parsedProfile.experienceLevel = "mid";
@@ -154,17 +187,36 @@ export default function ProfileScreen() {
   }, [resumeInput]);
 
   const hasProfile = profile.jobTitle || profile.skills.length > 0;
+  const showEmptyProfile = !hasProfile && !editMode && !showResumePaste;
 
-  const expLabel = EXPERIENCE_OPTIONS.find((o) => o.value === (editMode ? draft.experienceLevel : profile.experienceLevel))?.label ?? "Select";
+  const expLabel =
+    EXPERIENCE_OPTIONS.find(
+      (o) =>
+        o.value ===
+        (editMode ? draft.experienceLevel : profile.experienceLevel),
+    )?.label ?? "Select";
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        style={[styles.container, { paddingTop: insets.top }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          showEmptyProfile && styles.emptyScrollContent,
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
           {!editMode ? (
             <View style={styles.headerActions}>
-              <Pressable onPress={() => setShowResumePaste(true)} style={styles.resumeBtn}>
+              <Pressable
+                onPress={() => setShowResumePaste(true)}
+                style={styles.resumeBtn}
+              >
                 <FileText size={16} color={Colors.dark.accent} />
                 <Text style={styles.resumeBtnText}>Paste Resume</Text>
               </Pressable>
@@ -188,16 +240,18 @@ export default function ProfileScreen() {
         {showResumePaste && (
           <View style={styles.resumeSection}>
             <Text style={styles.resumeTitle}>Paste Your Resume</Text>
-            <Text style={styles.resumeSubtitle}>We'll extract your job title, skills, and experience level</Text>
+            <Text style={styles.resumeSubtitle}>
+              We'll extract your job title, skills, and experience level
+            </Text>
             <TextInput
               style={styles.resumeInput}
               multiline
               numberOfLines={8}
-              placeholder='Paste your resume text here...'
+              placeholder="Paste your resume text here..."
               placeholderTextColor={Colors.dark.textMuted}
               value={resumeInput}
               onChangeText={setResumeInput}
-              textAlignVertical='top'
+              textAlignVertical="top"
             />
             <View style={styles.resumeActions}>
               <Pressable
@@ -209,25 +263,38 @@ export default function ProfileScreen() {
               >
                 <Text style={styles.resumeCancelText}>Cancel</Text>
               </Pressable>
-              <Pressable onPress={parseResume} style={[styles.resumeParseBtn, !resumeInput.trim() && styles.resumeParseBtnDisabled]} disabled={!resumeInput.trim()}>
+              <Pressable
+                onPress={parseResume}
+                style={[
+                  styles.resumeParseBtn,
+                  !resumeInput.trim() && styles.resumeParseBtnDisabled,
+                ]}
+                disabled={!resumeInput.trim()}
+              >
                 <Text style={styles.resumeParseText}>Parse Resume</Text>
               </Pressable>
             </View>
           </View>
         )}
 
-        {!hasProfile && !editMode && !showResumePaste ? (
+        {showEmptyProfile ? (
           <View style={styles.emptyProfile}>
             <View style={styles.emptyIcon}>
               <User size={40} color={Colors.dark.textMuted} />
             </View>
             <Text style={styles.emptyTitle}>Set Up Your Profile</Text>
-            <Text style={styles.emptySubtitle}>Add your job preferences to see personalized results, or paste your resume to auto-fill your info.</Text>
+            <Text style={styles.emptySubtitle}>
+              Add your job preferences to see personalized results, or paste
+              your resume to auto-fill your info.
+            </Text>
             <View style={styles.emptyActions}>
               <Pressable onPress={handleEdit} style={styles.primaryAction}>
                 <Text style={styles.primaryActionText}>Enter Manually</Text>
               </Pressable>
-              <Pressable onPress={() => setShowResumePaste(true)} style={styles.secondaryAction}>
+              <Pressable
+                onPress={() => setShowResumePaste(true)}
+                style={styles.secondaryAction}
+              >
                 <FileText size={16} color={Colors.dark.tint} />
                 <Text style={styles.secondaryActionText}>Paste Resume</Text>
               </Pressable>
@@ -245,11 +312,13 @@ export default function ProfileScreen() {
                   style={styles.input}
                   value={draft.jobTitle}
                   onChangeText={(t) => setDraft((p) => ({ ...p, jobTitle: t }))}
-                  placeholder='e.g. Senior React Native Developer'
+                  placeholder="e.g. Senior React Native Developer"
                   placeholderTextColor={Colors.dark.textMuted}
                 />
               ) : (
-                <Text style={styles.fieldValue}>{profile.jobTitle || "Not set"}</Text>
+                <Text style={styles.fieldValue}>
+                  {profile.jobTitle || "Not set"}
+                </Text>
               )}
             </View>
 
@@ -263,11 +332,13 @@ export default function ProfileScreen() {
                   style={styles.input}
                   value={draft.location}
                   onChangeText={(t) => setDraft((p) => ({ ...p, location: t }))}
-                  placeholder='e.g. San Francisco, CA'
+                  placeholder="e.g. San Francisco, CA"
                   placeholderTextColor={Colors.dark.textMuted}
                 />
               ) : (
-                <Text style={styles.fieldValue}>{profile.location || "Not set"}</Text>
+                <Text style={styles.fieldValue}>
+                  {profile.location || "Not set"}
+                </Text>
               )}
             </View>
 
@@ -278,7 +349,10 @@ export default function ProfileScreen() {
               </View>
               {editMode ? (
                 <View>
-                  <Pressable onPress={() => setShowExpDropdown(!showExpDropdown)} style={styles.dropdown}>
+                  <Pressable
+                    onPress={() => setShowExpDropdown(!showExpDropdown)}
+                    style={styles.dropdown}
+                  >
                     <Text style={styles.dropdownText}>{expLabel}</Text>
                     <ChevronDown size={16} color={Colors.dark.textMuted} />
                   </Pressable>
@@ -294,9 +368,21 @@ export default function ProfileScreen() {
                             }));
                             setShowExpDropdown(false);
                           }}
-                          style={[styles.dropdownItem, draft.experienceLevel === opt.value && styles.dropdownItemActive]}
+                          style={[
+                            styles.dropdownItem,
+                            draft.experienceLevel === opt.value &&
+                              styles.dropdownItemActive,
+                          ]}
                         >
-                          <Text style={[styles.dropdownItemText, draft.experienceLevel === opt.value && styles.dropdownItemTextActive]}>{opt.label}</Text>
+                          <Text
+                            style={[
+                              styles.dropdownItemText,
+                              draft.experienceLevel === opt.value &&
+                                styles.dropdownItemTextActive,
+                            ]}
+                          >
+                            {opt.label}
+                          </Text>
                         </Pressable>
                       ))}
                     </View>
@@ -313,9 +399,15 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.skillsWrap}>
                 {(editMode ? draft.skills : profile.skills).map((skill) => (
-                  <SkillPill key={skill} label={skill} onRemove={editMode ? () => removeSkill(skill) : undefined} />
+                  <SkillPill
+                    key={skill}
+                    label={skill}
+                    onRemove={editMode ? () => removeSkill(skill) : undefined}
+                  />
                 ))}
-                {(editMode ? draft.skills : profile.skills).length === 0 && <Text style={styles.emptySkills}>No skills added</Text>}
+                {(editMode ? draft.skills : profile.skills).length === 0 && (
+                  <Text style={styles.emptySkills}>No skills added</Text>
+                )}
               </View>
               {editMode && (
                 <View style={styles.addSkillRow}>
@@ -323,12 +415,19 @@ export default function ProfileScreen() {
                     style={styles.addSkillInput}
                     value={newSkill}
                     onChangeText={setNewSkill}
-                    placeholder='Add a skill...'
+                    placeholder="Add a skill..."
                     placeholderTextColor={Colors.dark.textMuted}
                     onSubmitEditing={addSkill}
-                    returnKeyType='done'
+                    returnKeyType="done"
                   />
-                  <Pressable onPress={addSkill} style={[styles.addSkillBtn, !newSkill.trim() && styles.addSkillBtnDisabled]} disabled={!newSkill.trim()}>
+                  <Pressable
+                    onPress={addSkill}
+                    style={[
+                      styles.addSkillBtn,
+                      !newSkill.trim() && styles.addSkillBtnDisabled,
+                    ]}
+                    disabled={!newSkill.trim()}
+                  >
                     <Plus size={18} color={Colors.dark.background} />
                   </Pressable>
                 </View>
@@ -352,6 +451,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
+  },
+  emptyScrollContent: {
+    flexGrow: 1,
+    paddingBottom: 0,
   },
   header: {
     flexDirection: "row",
@@ -483,9 +586,11 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   emptyProfile: {
+    flexGrow: 1,
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 32,
-    paddingTop: 60,
+    paddingVertical: 24,
   },
   emptyIcon: {
     width: 90,

@@ -43,7 +43,15 @@ Run these inside `expo/`:
 | `npm run lint`          | Run ESLint                                      |
 | `npx tsc --noEmit`      | Check TypeScript types                          |
 
-There is no automated test suite configured yet. To manually test, search and filter listings, open job details, bookmark and remove jobs, edit your profile, and reload to check local persistence. Browser and native app data are stored separately.
+Run `npm test` inside `expo/` to test job normalization, fallback formatting, and filtering. To manually test, search and filter listings, open job details, bookmark and remove jobs, edit your profile, and reload to check local persistence. Browser and native app data are stored separately.
+
+### Job data and fallbacks
+
+`expo/utils/jobs.ts` provides `normalizeJob(raw, stableId)` as the shared boundary for future API adapters. Map an API response or parser output to the app's field names before normalizing it. This validates structured data; it does not yet extract fields from free-text job descriptions.
+
+Missing or invalid text, dates, enum values, lists, and URLs display as `unknown`. Unknown salaries are stored as `null`, not zero. Listings with unknown values appear by default, but do not match explicit filters for those values. Apply is disabled without a valid HTTP(S) URL.
+
+The first sample listing has all content missing to exercise these fallbacks. Search for `unknown` or open `http://localhost:8081/job/unknown-demo` to inspect it. Its internal ID remains stable so navigation and bookmarking still work.
 
 ### Troubleshooting
 
