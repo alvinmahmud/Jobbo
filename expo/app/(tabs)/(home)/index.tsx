@@ -88,9 +88,11 @@ export default function JobsScreen() {
   const ListHeader = (
     <View style={styles.headerContent}>
       <Text style={styles.title}>{getWelcomeMessage(profile.firstName)}</Text>
-      <Text style={styles.subtitle}>
-        {isDemo ? "Demo · Sample jobs, no live searches" : "US jobs"}
-      </Text>
+      {isDemo && (
+        <Text style={styles.subtitle}>
+          Demo · Sample jobs, no live searches
+        </Text>
+      )}
       <View style={styles.searchRow}>
         <View
           style={[styles.searchBar, searchFocused && styles.searchBarFocused]}
@@ -186,37 +188,7 @@ export default function JobsScreen() {
       >
         <Text style={styles.actionText}>Search</Text>
       </Pressable>
-      <View style={styles.resultsRow}>
-        <Text style={styles.resultsText}>
-          {showResults ? jobs.length : 0} jobs loaded
-        </Text>
-        {activeFilterCount > 0 && (
-          <Text style={styles.filterActiveText}>
-            {activeFilterCount} {activeFilterCount === 1 ? "filter" : "filters"}{" "}
-            active
-          </Text>
-        )}
-      </View>
-      <Text style={styles.note}>
-        Filters apply only to loaded results, not all US jobs.
-      </Text>
-      {searchError && (
-        <View style={styles.status}>
-          <Text style={styles.errorText} accessibilityRole="alert">
-            {searchError}
-          </Text>
-          <Pressable
-            onPress={onRefresh}
-            disabled={busy}
-            style={[styles.secondaryButton, busy && styles.disabled]}
-            accessibilityRole="button"
-            accessibilityLabel="Retry job search"
-            accessibilityState={{ disabled: busy }}
-          >
-            <Text style={styles.secondaryText}>Retry</Text>
-          </Pressable>
-        </View>
-      )}
+
       {isSearching && (
         <View style={styles.status} accessibilityLiveRegion="polite">
           <ActivityIndicator
@@ -291,6 +263,17 @@ export default function JobsScreen() {
           />
         }
       />
+      <View style={styles.resultsRow}>
+        <Text style={styles.resultsText} testID="job-count">
+          {showResults ? jobs.length : 0} jobs found
+        </Text>
+        {activeFilterCount > 0 && (
+          <Text style={styles.filterActiveText}>
+            {activeFilterCount} {activeFilterCount === 1 ? "filter" : "filters"}{" "}
+            active
+          </Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -303,7 +286,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     color: Colors.dark.text,
-    marginBottom: 6,
+    marginBottom: 16,
   },
   subtitle: {
     fontSize: 14,
@@ -406,7 +389,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     gap: 8,
-    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   resultsText: {
     fontSize: 13,
@@ -427,7 +411,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   status: { gap: 8, marginTop: 16 },
-  errorText: { fontSize: 14, color: Colors.dark.text, flexShrink: 1 },
+
   secondaryButton: {
     minHeight: 48,
     padding: 12,
