@@ -219,7 +219,7 @@ export default function JobDetailScreen() {
               </View>
             ))
           ) : (
-            <Text style={styles.description}>Requirements not specified.</Text>
+            <Text style={styles.description}>Requirements unknown</Text>
           )}
         </View>
 

@@ -33,7 +33,9 @@ export const [JobProvider, useJobs] = createContextHook(() => {
     queryKey: ["profile"],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem(PROFILE_KEY);
-      return stored ? (JSON.parse(stored) as UserProfile) : DEFAULT_PROFILE;
+      return stored
+        ? ({ ...DEFAULT_PROFILE, ...JSON.parse(stored) } as UserProfile)
+        : DEFAULT_PROFILE;
     },
   });
 

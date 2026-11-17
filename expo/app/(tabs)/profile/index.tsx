@@ -26,6 +26,7 @@ import Colors from "@/constants/colors";
 import { useJobs } from "@/providers/JobProvider";
 import { SkillPill } from "@/components/SkillPill";
 import { UserProfile, ExperienceLevel } from "@/types";
+import { extractResumeFirstName } from "@/utils/profile";
 
 const EXPERIENCE_OPTIONS: { value: ExperienceLevel; label: string }[] = [
   { value: "entry", label: "Entry Level" },
@@ -82,7 +83,9 @@ export default function ProfileScreen() {
     if (!resumeInput.trim()) return;
 
     const text = resumeInput.toLowerCase();
-    const parsedProfile: Partial<UserProfile> = {};
+    const parsedProfile: Partial<UserProfile> = {
+      firstName: extractResumeFirstName(resumeInput),
+    };
 
     const techSkills = [
       "React",
@@ -186,7 +189,8 @@ export default function ProfileScreen() {
     );
   }, [resumeInput]);
 
-  const hasProfile = profile.jobTitle || profile.skills.length > 0;
+  const hasProfile =
+    profile.firstName || profile.jobTitle || profile.skills.length > 0;
   const showEmptyProfile = !hasProfile && !editMode && !showResumePaste;
 
   const expLabel =
@@ -302,6 +306,30 @@ export default function ProfileScreen() {
           </View>
         ) : (
           <View style={styles.form}>
+            <View style={styles.field}>
+              <View style={styles.fieldLabel}>
+                <User size={16} color={Colors.dark.tint} />
+                <Text style={styles.labelText}>First Name</Text>
+              </View>
+              {editMode ? (
+                <TextInput
+                  style={styles.input}
+                  value={draft.firstName}
+                  onChangeText={(firstName) =>
+                    setDraft((p) => ({ ...p, firstName }))
+                  }
+                  placeholder="Your first name"
+                  placeholderTextColor={Colors.dark.textMuted}
+                  autoCapitalize="words"
+                  autoComplete="given-name"
+                  testID="first-name-input"
+                />
+              ) : (
+                <Text style={styles.fieldValue}>
+                  {profile.firstName || "Not set"}
+                </Text>
+              )}
+            </View>
             <View style={styles.field}>
               <View style={styles.fieldLabel}>
                 <Briefcase size={16} color={Colors.dark.tint} />

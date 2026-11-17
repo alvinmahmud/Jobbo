@@ -165,32 +165,32 @@ export function getJobDisplay(job: Job) {
     .join(" · ");
 
   return {
-    title: job.title === UNKNOWN ? "Job title unavailable" : job.title,
-    company: job.company === UNKNOWN ? "Company not specified" : job.company,
+    title: job.title === UNKNOWN ? "Title Unavailable" : job.title,
+    company: job.company === UNKNOWN ? "Company unknown" : job.company,
     location:
-      job.location === UNKNOWN ? "Location not specified" : job.location,
+      job.location === UNKNOWN ? "Location unknown" : job.location,
     salary: salary === UNKNOWN ? null : salary,
     salaryAnnual:
-      salary === UNKNOWN ? "Salary not disclosed" : formatJobSalary(job, true),
+      salary === UNKNOWN ? "Salary unknown" : formatJobSalary(job, true),
     workType: job.workType === UNKNOWN ? null : WORK_TYPE_LABELS[job.workType],
-    type: type || "Type not specified",
+    type: type || "Type unknown",
     experience:
       job.experienceLevel === UNKNOWN
-        ? "Experience level not specified"
+        ? "Experience level unknown"
         : EXPERIENCE_LABELS[job.experienceLevel],
-    date: age === UNKNOWN ? "Date not available" : `Posted ${age}`,
+    date: age === UNKNOWN ? "Date unknown" : `Posted ${age}`,
     cardDate:
-      age === UNKNOWN ? "Date not available" : formatJobAge(job.postedAt, true),
+      age === UNKNOWN ? "Date unknown" : formatJobAge(job.postedAt, true),
     description:
       job.description === UNKNOWN
-        ? "No description available."
+        ? "Description unknown"
         : job.description,
     requirements: job.requirements.filter((value) => value !== UNKNOWN),
     skills: job.skills.filter((value) => value !== UNKNOWN),
     source,
     canApply,
     applicationLabel: !canApply
-      ? "Application link unavailable"
+      ? "Application link unknown"
       : source
         ? `Apply on ${source}`
         : "Apply",

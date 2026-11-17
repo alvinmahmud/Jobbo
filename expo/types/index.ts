@@ -24,6 +24,7 @@ export interface Job {
 }
 
 export interface UserProfile {
+  firstName: string;
   jobTitle: string;
   skills: string[];
   location: string;
@@ -55,6 +56,7 @@ export const DEFAULT_FILTERS: Filters = {
 };
 
 export const DEFAULT_PROFILE: UserProfile = {
+  firstName: "",
   jobTitle: "",
   skills: [],
   location: "",

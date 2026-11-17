@@ -1,5 +1,14 @@
 import React, { useState, useCallback, useRef } from "react";
-import { View, Text, StyleSheet, FlatList, TextInput, Pressable, RefreshControl, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  Pressable,
+  RefreshControl,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Search, SlidersHorizontal, X } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,11 +18,12 @@ import { useJobs } from "@/providers/JobProvider";
 import { JobCard } from "@/components/JobCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Job } from "@/types";
+import { getWelcomeMessage } from "@/utils/profile";
 
 export default function JobsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { jobs, filters, setFilters, activeFilterCount } = useJobs();
+  const { jobs, filters, setFilters, activeFilterCount, profile } = useJobs();
   const [refreshing, setRefreshing] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
@@ -50,22 +60,23 @@ export default function JobsScreen() {
 
   const ListHeader = (
     <View style={styles.headerContent}>
-      <Text style={styles.greeting}>Find your next</Text>
-      <Text style={styles.title}>Dream Job</Text>
+      <Text style={styles.title}>{getWelcomeMessage(profile.firstName)}</Text>
       <View style={styles.searchRow}>
-        <View style={[styles.searchBar, searchFocused && styles.searchBarFocused]}>
+        <View
+          style={[styles.searchBar, searchFocused && styles.searchBarFocused]}
+        >
           <Search size={18} color={Colors.dark.textMuted} />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder='Search jobs, companies, skills...'
+            placeholder="Search jobs, companies, skills..."
             placeholderTextColor={Colors.dark.textMuted}
             value={filters.search}
             onChangeText={handleSearchChange}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
-            returnKeyType='search'
-            testID='search-input'
+            returnKeyType="search"
+            testID="search-input"
           />
           {filters.search.length > 0 && (
             <Pressable onPress={clearSearch} hitSlop={8}>
@@ -73,8 +84,22 @@ export default function JobsScreen() {
             </Pressable>
           )}
         </View>
-        <Pressable onPress={openFilters} style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]} testID='filter-button'>
-          <SlidersHorizontal size={20} color={activeFilterCount > 0 ? Colors.dark.tint : Colors.dark.textSecondary} />
+        <Pressable
+          onPress={openFilters}
+          style={[
+            styles.filterBtn,
+            activeFilterCount > 0 && styles.filterBtnActive,
+          ]}
+          testID="filter-button"
+        >
+          <SlidersHorizontal
+            size={20}
+            color={
+              activeFilterCount > 0
+                ? Colors.dark.tint
+                : Colors.dark.textSecondary
+            }
+          />
           {activeFilterCount > 0 && (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
@@ -88,7 +113,8 @@ export default function JobsScreen() {
         </Text>
         {activeFilterCount > 0 && (
           <Text style={styles.filterActiveText}>
-            {activeFilterCount} {activeFilterCount === 1 ? "filter" : "filters"} active
+            {activeFilterCount} {activeFilterCount === 1 ? "filter" : "filters"}{" "}
+            active
           </Text>
         )}
       </View>
@@ -103,11 +129,21 @@ export default function JobsScreen() {
         keyExtractor={keyExtractor}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
-          <EmptyState icon={<Search size={32} color={Colors.dark.textMuted} />} title='No jobs found' subtitle='Try adjusting your search or filters to see more results' />
+          <EmptyState
+            icon={<Search size={32} color={Colors.dark.textMuted} />}
+            title="No jobs found"
+            subtitle="Try adjusting your search or filters to see more results"
+          />
         }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.dark.tint} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.dark.tint}
+          />
+        }
       />
     </View>
   );
@@ -126,12 +162,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 16,
   },
-  greeting: {
-    fontSize: 14,
-    color: Colors.dark.textMuted,
-    fontWeight: "500" as const,
-    marginBottom: 2,
-  },
+
   title: {
     fontSize: 28,
     fontWeight: "800" as const,
